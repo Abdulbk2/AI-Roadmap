@@ -1,0 +1,16 @@
+# render.yaml
+services:
+  - type: web
+    name: ai-roadmap-app
+    env: node
+    # Build command installs dependencies and runs the build script
+    buildCommand: npm install && npm run build
+    # Start command launches the compiled server
+    startCommand: npm run start
+    envVars:
+      # Specify Node.js version to ensure compatibility
+      - key: NODE_VERSION
+        value: 22.14.0
+      # You will need to add this secret in the Render dashboard
+      - key: GEMINI_API_KEY
+        sync: false
