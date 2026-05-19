@@ -1,0 +1,96 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "A university student's profile",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Auth UID" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "major": { "type": "string" },
+        "graduationYear": { "type": "integer" },
+        "createdAt": { "type": "integer", "description": "Timestamp" },
+        "updatedAt": { "type": "integer", "description": "Timestamp" }
+      },
+      "required": ["userId", "email", "name"]
+    },
+    "AcademicRecord": {
+      "title": "Academic Record",
+      "description": "Student's courses and grades",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "description": "Reference to Student" },
+        "courseCode": { "type": "string" },
+        "courseName": { "type": "string" },
+        "grade": { "type": "string" },
+        "credits": { "type": "integer" },
+        "semester": { "type": "string" },
+        "year": { "type": "integer" },
+        "createdAt": { "type": "integer", "description": "Timestamp" }
+      },
+      "required": ["studentId", "courseCode", "grade"]
+    },
+    "Skill": {
+      "title": "Skill",
+      "description": "A skill possessed by a student",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "name": { "type": "string" },
+        "proficiency": { "type": "string", "enum": ["Beginner", "Intermediate", "Advanced", "Expert"] },
+        "createdAt": { "type": "integer", "description": "Timestamp" }
+      },
+      "required": ["studentId", "name", "proficiency"]
+    },
+    "CareerPlan": {
+      "title": "Career Plan",
+      "description": "A roadmap item for the student",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "In Progress", "Completed"] },
+        "type": { "type": "string", "enum": ["Certification", "Course", "Internship", "Skill"] },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["studentId", "title", "status", "type"]
+    },
+    "Recommendation": {
+      "title": "AI Recommendation",
+      "description": "Recommendation given to a student",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "content": { "type": "string" },
+        "type": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["studentId", "content", "type", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": { "$ref": "#/entities/Student" },
+      "description": "Student profile data"
+    },
+    "/students/{studentId}/academic_records/{recordId}": {
+      "schema": { "$ref": "#/entities/AcademicRecord" },
+      "description": "Academic records for the student"
+    },
+    "/students/{studentId}/skills/{skillId}": {
+      "schema": { "$ref": "#/entities/Skill" },
+      "description": "Skills for the student"
+    },
+    "/students/{studentId}/career_plans/{planId}": {
+      "schema": { "$ref": "#/entities/CareerPlan" },
+      "description": "Career roadmap and steps for the student"
+    },
+    "/students/{studentId}/recommendations/{recommendationId}": {
+      "schema": { "$ref": "#/entities/Recommendation" },
+      "description": "AI recommendations for the student"
+    }
+  }
+}

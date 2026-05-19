@@ -1,0 +1,6 @@
+{
+  "name": "Academic & Career Roadmap AI",
+  "description": "An AI-powered web application that helps university students plan their academic journey and career pathway intelligently and autonomously.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

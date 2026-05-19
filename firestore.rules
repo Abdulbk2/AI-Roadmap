@@ -1,0 +1,117 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+
+    function isValidStudent(data) {
+      return data.keys().hasAll(['userId', 'email', 'name']) &&
+             data.userId == request.auth.uid &&
+             data.email is string && data.email.size() <= 256 &&
+             data.name is string && data.name.size() <= 100 &&
+             (!('major' in data) || (data.major is string && data.major.size() <= 100)) &&
+             (!('graduationYear' in data) || data.graduationYear is number) &&
+             (!('createdAt' in data) || data.createdAt is timestamp || data.createdAt is number) &&
+             (!('updatedAt' in data) || data.updatedAt is timestamp || data.updatedAt is number);
+    }
+
+    match /students/{studentId} {
+      allow get: if isSignedIn() && isValidId(studentId) && request.auth.uid == studentId;
+      allow list: if false;
+      allow create: if isSignedIn() && isValidId(studentId) && studentId == request.auth.uid &&
+                    isValidStudent(incoming());
+      allow update: if isSignedIn() && isValidId(studentId) && studentId == request.auth.uid &&
+                    isValidStudent(incoming()) &&
+                    incoming().userId == existing().userId;
+    }
+
+    function isValidAcademicRecord(data, studentId) {
+      return data.keys().hasAll(['studentId', 'courseCode', 'grade']) &&
+             data.studentId == studentId &&
+             data.courseCode is string && data.courseCode.size() <= 20 &&
+             data.grade is string && data.grade.size() <= 5 &&
+             (!('courseName' in data) || (data.courseName is string && data.courseName.size() <= 100)) &&
+             (!('credits' in data) || data.credits is number) &&
+             (!('semester' in data) || (data.semester is string && data.semester.size() <= 20)) &&
+             (!('year' in data) || data.year is number) &&
+             (!('createdAt' in data) || data.createdAt is timestamp || data.createdAt is number);
+    }
+
+    match /students/{studentId}/academic_records/{recordId} {
+      allow get: if isSignedIn() && isValidId(studentId) && isValidId(recordId) && request.auth.uid == studentId;
+      allow list: if isSignedIn() && isValidId(studentId) && request.auth.uid == studentId;
+      allow create: if isSignedIn() && isValidId(studentId) && isValidId(recordId) && request.auth.uid == studentId &&
+                    isValidAcademicRecord(incoming(), studentId);
+      allow update: if isSignedIn() && isValidId(studentId) && isValidId(recordId) && request.auth.uid == studentId &&
+                    isValidAcademicRecord(incoming(), studentId) &&
+                    incoming().studentId == existing().studentId;
+      allow delete: if isSignedIn() && isValidId(studentId) && isValidId(recordId) && request.auth.uid == studentId;
+    }
+
+    function isValidSkill(data, studentId) {
+      return data.keys().hasAll(['studentId', 'name', 'proficiency']) &&
+             data.studentId == studentId &&
+             data.name is string && data.name.size() <= 100 &&
+             data.proficiency is string && data.proficiency.size() <= 20 &&
+             (!('createdAt' in data) || data.createdAt is timestamp || data.createdAt is number);
+    }
+    
+    match /students/{studentId}/skills/{skillId} {
+      allow get: if isSignedIn() && isValidId(studentId) && isValidId(skillId) && request.auth.uid == studentId;
+      allow list: if isSignedIn() && isValidId(studentId) && request.auth.uid == studentId;
+      allow create: if isSignedIn() && isValidId(studentId) && isValidId(skillId) && request.auth.uid == studentId &&
+                    isValidSkill(incoming(), studentId);
+      allow update: if isSignedIn() && isValidId(studentId) && isValidId(skillId) && request.auth.uid == studentId &&
+                    isValidSkill(incoming(), studentId) &&
+                    incoming().studentId == existing().studentId;
+      allow delete: if isSignedIn() && isValidId(studentId) && isValidId(skillId) && request.auth.uid == studentId;
+    }
+
+    function isValidCareerPlan(data, studentId) {
+      return data.keys().hasAll(['studentId', 'title', 'status', 'type']) &&
+             data.studentId == studentId &&
+             data.title is string && data.title.size() <= 200 &&
+             data.status is string && data.status.size() <= 20 &&
+             data.type is string && data.type.size() <= 20 &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+             (!('createdAt' in data) || data.createdAt is timestamp || data.createdAt is number);
+    }
+    
+    match /students/{studentId}/career_plans/{planId} {
+      allow get: if isSignedIn() && isValidId(studentId) && isValidId(planId) && request.auth.uid == studentId;
+      allow list: if isSignedIn() && isValidId(studentId) && request.auth.uid == studentId;
+      allow create: if isSignedIn() && isValidId(studentId) && isValidId(planId) && request.auth.uid == studentId &&
+                    isValidCareerPlan(incoming(), studentId);
+      allow update: if isSignedIn() && isValidId(studentId) && isValidId(planId) && request.auth.uid == studentId &&
+                    isValidCareerPlan(incoming(), studentId) &&
+                    incoming().studentId == existing().studentId;
+      allow delete: if isSignedIn() && isValidId(studentId) && isValidId(planId) && request.auth.uid == studentId;
+    }
+
+    function isValidRecommendation(data, studentId) {
+      return data.keys().hasAll(['studentId', 'content', 'type', 'createdAt']) &&
+             data.studentId == studentId &&
+             data.content is string && data.content.size() <= 2000 &&
+             data.type is string && data.type.size() <= 50 &&
+             (data.createdAt is timestamp || data.createdAt is number) &&
+             (!('isRead' in data) || data.isRead is bool);
+    }
+
+    match /students/{studentId}/recommendations/{recommendationId} {
+      allow get: if isSignedIn() && isValidId(studentId) && isValidId(recommendationId) && request.auth.uid == studentId;
+      allow list: if isSignedIn() && isValidId(studentId) && request.auth.uid == studentId;
+      allow create: if isSignedIn() && isValidId(studentId) && isValidId(recommendationId) && request.auth.uid == studentId &&
+                    isValidRecommendation(incoming(), studentId);
+      allow update: if isSignedIn() && isValidId(studentId) && isValidId(recommendationId) && request.auth.uid == studentId &&
+                    isValidRecommendation(incoming(), studentId) &&
+                    incoming().studentId == existing().studentId;
+      allow delete: if false; 
+    }
+  }
+}
